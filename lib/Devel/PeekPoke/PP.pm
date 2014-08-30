@@ -43,7 +43,7 @@ BEGIN {
       _XPV_ADDR_OFFSET => undef, # it isn't really undefined, we just do not care
     });
   }
-  elsif (_PERLVERSION < 5.018) {
+  elsif (_PERLVERSION < 5.022) {
     # The xpv address is written to the svu_pv, however we may get in trouble
     # due to padding/alignment when ivsize (thus svu) is larger than PTR_SIZE
     constant->import( _XPV_IN_SVU_OFFSET => $Config{ivsize} == PTR_SIZE ? 0 : do {
