@@ -2,7 +2,7 @@ package Devel::PeekPoke;
 use strict;
 use warnings;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Carp;
 use Devel::PeekPoke::Constants qw/PTR_SIZE PTR_PACK_TYPE BIG_ENDIAN/;
