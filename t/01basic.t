@@ -41,4 +41,33 @@ SKIP: {
     qr/\QExpecting a byte string, but received what looks like *possible* characters, please utf8_downgrade the input/;
 }
 
+TODO: {
+  local $TODO = "#98745 5.20.1 regression with poke_size 10" if $] > 5.020;
+  my $str = 'for mutilation and mayhem';
+  my $len = length($str);
+  my $str_pv_addr = unpack(PTR_PACK_TYPE, pack('p', $str) );
+  my ($poke_start, $poke_size) = (0, 10);
+  my $replace_chunk = 'a' . ( '0' x ($poke_size-1) );
+  my $expecting = $str;
+  substr($expecting, $poke_start, $poke_size, $replace_chunk);
+  if ($ENV{DEBUG}) {
+    require Devel::Peek;
+    Devel::Peek->import;
+    warn "str:\n";
+    Dump($str);
+    warn "expecting:\n";
+    Dump($expecting);
+    warn sprintf("str_pv_addr=0x%x", $str_pv_addr);
+  }
+  poke($str_pv_addr+$poke_start, $replace_chunk);
+  unless (is($str, $expecting, "poke $poke_start $poke_size #98745")) {
+    if ($ENV{DEBUG}) {
+      warn "str:\n";
+      Dump($str);
+      warn "expecting:\n";
+      Dump($expecting);
+    }
+  }
+}
+
 done_testing;

@@ -86,6 +86,10 @@ sub peek {
   unpack "P$_[1]", _pack_address($_[0]);
 }
 
+sub _IsCOW { # on a B object
+  return ($] >= 5.017008 and $_[0]->FLAGS & 0x00010000); # since 5.17.8
+}
+
 # this implementation is based on (a portably written version of)
 # http://www.perlmonks.org/?node_id=379428
 # there should be a much simpler way according to Reini Urban, but I
@@ -124,8 +128,20 @@ sub poke {
     substr( $xpv_contents, 0, PTR_SIZE ) = $addr;  # replace pvx in xpv with the "string buffer" location
     substr( $ghost_sv_contents, 0, PTR_SIZE) = pack ('P', $xpv_contents );  # replace xpv in sv
   }
-  else { # new style 5.10+ SVs
+  elsif ($] < 5.020) { # 5.10+ uncow'ed SVs
     substr( $ghost_sv_contents, _XPV_ADDR_OFFSET, PTR_SIZE ) = $addr;
+  }
+  else { # 5.18+ cow'ed SVs
+    # API problem: we need the flags for the original string, not the PV address, to see if it's a COW, HEK or PV
+    my $b = B::svref_2object(\$dummy);
+    # see http://cpansearch.perl.org/src/RURBAN/illguts-0.49/index-18.html#svpv
+    if (_IsCOW($b) && !$b->LEN) {
+      # dummy must be a hek, not just a char *. or unshare the pv
+      die "Error: Cannot deal with shared COW heks yet";
+      substr( $ghost_sv_contents, _XPV_ADDR_OFFSET, PTR_SIZE ) = $addr;
+    } else {
+      substr( $ghost_sv_contents, _XPV_ADDR_OFFSET, PTR_SIZE ) = $addr;
+    }
   }
 
   my $ghost_string_ref = bless( \ unpack(
