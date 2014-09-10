@@ -17,6 +17,7 @@ sub is {
     );
   }
   threads->yield if $INC{'threads.pm'};
+  $str eq 'ok'
 }
 
 use Devel::PeekPoke qw/peek poke peek_address poke_address/;
@@ -38,7 +39,9 @@ for (1 .. ($ENV{AUTOMATED_TESTING} ? 200 : 5 ) ) {
       substr($expecting, $poke_start, $poke_size, $replace_chunk);
 
       poke($str_pv_addr+$poke_start, $replace_chunk);
-      is($str, $expecting, 'String matches expectation after poke');
+      unless (is($str, $expecting, "poke $poke_start $poke_size")) {
+        print "# $poke_start $poke_size $len: $str <=> $expecting\n";
+      }
     }
   }
 }
