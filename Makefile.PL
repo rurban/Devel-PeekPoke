@@ -9,8 +9,8 @@ my $use_pp = $ENV{DEVEL_PEEK_POKE_USE_PP} || ! can_cc();
 
 $use_pp = 1; # FIXME - if someone writes the XS, this will no longer be true
 
-if ($use_pp and ($] =~ /^5.(\d{3})/)[0] % 2) {
-  die "Installation will need Devel::PeekPoke::PP, which does not work (by design) on development perls ($])\n";
+if (!$use_pp and ($] =~ /^5.(\d{3})/)[0] % 2) {
+  die "Installation will need Devel::PeekPoke::PP. XS development versions do not work (by design) on dev#elopment perls ($])\n";
 }
 
 # the XS version (when written) should work fine on 5.6
